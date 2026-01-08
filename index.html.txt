@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK 1 Flashcards - Ôn tập 16 Bài</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: #eef2f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        /* Mode Buttons */
+        .mode-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-mode {
+            padding: 8px 16px;
+            border: 1px solid var(--primary-color);
+            background: white;
+            color: var(--primary-color);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-mode.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Flashcard Container */
+        .card-container {
+            perspective: 1000px;
+            width: 90%;
+            max-width: 400px;
+            height: 300px;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            background: var(--card-bg);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Front Face */
+        .card-front {
+            background-color: #fff;
+            color: #333;
+        }
+
+        .hanzi {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        /* Back Face */
+        .card-back {
+            background-color: #fffaf0;
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary-color);
+        }
+
+        .pinyin {
+            font-size: 1.5rem;
+            color: #d35400;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .meaning {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
+        /* Action Buttons */
+        .action-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-flip { background-color: #f1c40f; color: #333; }
+        .btn-speak { background-color: #2ecc71; color: white; }
+        .btn-next { background-color: #3498db; color: white; }
+
+        .btn-action:hover { opacity: 0.9; }
+        .btn-action:active { transform: scale(0.98); }
+
+        /* Counter */
+        .counter {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>HSK 1 - Ôn Tập Tổng Hợp</h1>
+
+    <div class="mode-controls">
+        <button class="btn-mode" onclick="setMode('vocab')">Từ vựng</button>
+        <button class="btn-mode" onclick="setMode('sentence')">Câu hội thoại</button>
+        <button class="btn-mode active" onclick="setMode('all')">Tất cả</button>
+    </div>
+
+    <div class="card-container" onclick="flipCard()">
+        <div class="flashcard" id="flashcard">
+            <div class="card-face card-front">
+                <div class="hanzi" id="card-hanzi">你好</div>
+                <div class="hint">(Nhấn để lật)</div>
+            </div>
+            <div class="card-face card-back">
+                <div class="hanzi" id="card-hanzi-back" style="font-size: 2rem;">你好</div>
+                <div class="pinyin" id="card-pinyin">nǐ hǎo</div>
+                <div class="meaning" id="card-meaning">Xin chào</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-controls">
+        <button class="btn-action btn-flip" onclick="flipCard()">🔄 Lật thẻ</button>
+        <button class="btn-action btn-speak" onclick="speakText()">🔊 Phát âm</button>
+        <button class="btn-action btn-next" onclick="nextCard()">➡ Tiếp</button>
+    </div>
+
+    <div class="counter" id="counter">0 / 0</div>
+
+<script>
+    // Dữ liệu tổng hợp từ 16 bài
+    const database = [
+        // --- Bài 1 ---
+        { type: 'vocab', hanzi: '你', pinyin: 'nǐ', viet: 'Bạn, cậu, anh, chị' },
+        { type: 'vocab', hanzi: '好', pinyin: 'hǎo', viet: 'Tốt, khỏe, hay' },
+        { type: 'vocab', hanzi: '您', pinyin: 'nín', viet: 'Ngài, ông, bà (kính ngữ)' },
+        { type: 'vocab', hanzi: '你们', pinyin: 'nǐmen', viet: 'Các bạn' },
+        { type: 'vocab', hanzi: '对不起', pinyin: 'duìbuqǐ', viet: 'Xin lỗi' },
+        { type: 'vocab', hanzi: '没关系', pinyin: 'méi guānxi', viet: 'Không sao đâu' },
+        { type: 'sentence', hanzi: '你好！', pinyin: 'Nǐ hǎo!', viet: 'Xin chào!' },
+        { type: 'sentence', hanzi: '对不起！', pinyin: 'Duìbuqǐ!', viet: 'Xin lỗi!' },
+        { type: 'sentence', hanzi: '没关系！', pinyin: 'Méi guānxi!', viet: 'Không sao đâu!' },
+        
+        // --- Bài 2 ---
+        { type: 'vocab', hanzi: '谢谢', pinyin: 'xièxie', viet: 'Cảm ơn' },
+        { type: 'vocab', hanzi: '不', pinyin: 'bù', viet: 'Không' },
+        { type: 'vocab', hanzi: '不客气', pinyin: 'bú kèqi', viet: 'Đừng khách sáo' },
+        { type: 'vocab', hanzi: '再见', pinyin: 'zàijiàn', viet: 'Tạm biệt' },
+        { type: 'sentence', hanzi: '谢谢你！', pinyin: 'Xièxie nǐ!', viet: 'Cảm ơn bạn!' },
+        { type: 'sentence', hanzi: '不客气！', pinyin: 'Bú kèqi!', viet: 'Đừng khách sáo!' },
+
+        // --- Bài 3 ---
+        { type: 'vocab', hanzi: '叫', pinyin: 'jiào', viet: 'Tên là, gọi là' },
+        { type: 'vocab', hanzi: '什么', pinyin: 'shénme', viet: 'Cái gì' },
+        { type: 'vocab', hanzi: '名字', pinyin: 'míngzi', viet: 'Tên' },
+        { type: 'vocab', hanzi: '我', pinyin: 'wǒ', viet: 'Tôi, tớ, mình' },
+        { type: 'vocab', hanzi: '是', pinyin: 'shì', viet: 'Là' },
+        { type: 'vocab', hanzi: '老师', pinyin: 'lǎoshī', viet: 'Giáo viên' },
+        { type: 'vocab', hanzi: '学生', pinyin: 'xuésheng', viet: 'Học sinh' },
+        { type: 'vocab', hanzi: '人', pinyin: 'rén', viet: 'Người' },
+        { type: 'vocab', hanzi: '中国', pinyin: 'Zhōngguó', viet: 'Trung Quốc' },
+        { type: 'vocab', hanzi: '美国', pinyin: 'Měiguó', viet: 'Mỹ' },
+        { type: 'sentence', hanzi: '你叫什么名字？', pinyin: 'Nǐ jiào shénme míngzi?', viet: 'Bạn tên là gì?' },
+        { type: 'sentence', hanzi: '我是学生。', pinyin: 'Wǒ shì xuésheng.', viet: 'Tôi là học sinh.' },
+
+        // --- Bài 4 ---
+        { type: 'vocab', hanzi: '她', pinyin: 'tā', viet: 'Cô ấy' },
+        { type: 'vocab', hanzi: '谁', pinyin: 'shéi', viet: 'Ai' },
+        { type: 'vocab', hanzi: '汉语', pinyin: 'Hànyǔ', viet: 'Tiếng Trung' },
+        { type: 'vocab', hanzi: '哪', pinyin: 'nǎ', viet: 'Nào, đâu' },
+        { type: 'vocab', hanzi: '国', pinyin: 'guó', viet: 'Quốc gia' },
+        { type: 'vocab', hanzi: '呢', pinyin: 'ne', viet: '...thì sao?' },
+        { type: 'vocab', hanzi: '他', pinyin: 'tā', viet: 'Anh ấy' },
+        { type: 'vocab', hanzi: '同学', pinyin: 'tóngxué', viet: 'Bạn học' },
+        { type: 'vocab', hanzi: '朋友', pinyin: 'péngyou', viet: 'Bạn bè' },
+        { type: 'sentence', hanzi: '她是我的汉语老师。', pinyin: 'Tā shì wǒ de Hànyǔ lǎoshī.', viet: 'Cô ấy là giáo viên tiếng Trung của tôi.' },
+        { type: 'sentence', hanzi: '你是哪国人？', pinyin: 'Nǐ shì nǎ guó rén?', viet: 'Bạn là người nước nào?' },
+
+        // --- Bài 5 ---
+        { type: 'vocab', hanzi: '家', pinyin: 'jiā', viet: 'Nhà, gia đình' },
+        { type: 'vocab', hanzi: '有', pinyin: 'yǒu', viet: 'Có' },
+        { type: 'vocab', hanzi: '口', pinyin: 'kǒu', viet: 'Lượng từ cho người' },
+        { type: 'vocab', hanzi: '女儿', pinyin: 'nǚ\'ér', viet: 'Con gái' },
+        { type: 'vocab', hanzi: '几', pinyin: 'jǐ', viet: 'Mấy' },
+        { type: 'vocab', hanzi: '岁', pinyin: 'suì', viet: 'Tuổi' },
+        { type: 'vocab', hanzi: '今年', pinyin: 'jīnnián', viet: 'Năm nay' },
+        { type: 'vocab', hanzi: '多', pinyin: 'duō', viet: 'Bao nhiêu (nhiều)' },
+        { type: 'vocab', hanzi: '大', pinyin: 'dà', viet: 'Lớn, to' },
+        { type: 'sentence', hanzi: '你家有几口人？', pinyin: 'Nǐ jiā yǒu jǐ kǒu rén?', viet: 'Nhà bạn có mấy người?' },
+        { type: 'sentence', hanzi: '你女儿几岁了？', pinyin: 'Nǐ nǚ\'ér jǐ suì le?', viet: 'Con gái bạn mấy tuổi rồi?' },
+
+        // --- Bài 6 ---
+        { type: 'vocab', hanzi: '会', pinyin: 'huì', viet: 'Biết (học mới biết)' },
+        { type: 'vocab', hanzi: '说', pinyin: 'shuō', viet: 'Nói' },
+        { type: 'vocab', hanzi: '妈妈', pinyin: 'māma', viet: 'Mẹ' },
+        { type: 'vocab', hanzi: '菜', pinyin: 'cài', viet: 'Món ăn' },
+        { type: 'vocab', hanzi: '很', pinyin: 'hěn', viet: 'Rất' },
+        { type: 'vocab', hanzi: '好吃', pinyin: 'hǎochī', viet: 'Ngon' },
+        { type: 'vocab', hanzi: '做', pinyin: 'zuò', viet: 'Làm' },
+        { type: 'vocab', hanzi: '写', pinyin: 'xiě', viet: 'Viết' },
+        { type: 'vocab', hanzi: '汉字', pinyin: 'Hànzì', viet: 'Chữ Hán' },
+        { type: 'vocab', hanzi: '怎么', pinyin: 'zěnme', viet: 'Như thế nào' },
+        { type: 'vocab', hanzi: '读', pinyin: 'dú', viet: 'Đọc' },
+        { type: 'sentence', hanzi: '你会说汉语吗？', pinyin: 'Nǐ huì shuō Hànyǔ ma?', viet: 'Bạn biết nói tiếng Trung không?' },
+        { type: 'sentence', hanzi: '中国菜很好吃。', pinyin: 'Zhōngguó cài hěn hǎochī.', viet: 'Món Trung Quốc rất ngon.' },
+
+        // --- Bài 7 ---
+        { type: 'vocab', hanzi: '请', pinyin: 'qǐng', viet: 'Xin, mời' },
+        { type: 'vocab', hanzi: '问', pinyin: 'wèn', viet: 'Hỏi' },
+        { type: 'vocab', hanzi: '今天', pinyin: 'jīntiān', viet: 'Hôm nay' },
+        { type: 'vocab', hanzi: '号', pinyin: 'hào', viet: 'Ngày (số)' },
+        { type: 'vocab', hanzi: '月', pinyin: 'yuè', viet: 'Tháng' },
+        { type: 'vocab', hanzi: '星期', pinyin: 'xīngqī', viet: 'Tuần, thứ' },
+        { type: 'vocab', hanzi: '昨天', pinyin: 'zuótiān', viet: 'Hôm qua' },
+        { type: 'vocab', hanzi: '明天', pinyin: 'míngtiān', viet: 'Ngày mai' },
+        { type: 'vocab', hanzi: '去', pinyin: 'qù', viet: 'Đi' },
+        { type: 'vocab', hanzi: '学校', pinyin: 'xuéxiào', viet: 'Trường học' },
+        { type: 'vocab', hanzi: '看', pinyin: 'kàn', viet: 'Xem, nhìn, đọc' },
+        { type: 'vocab', hanzi: '书', pinyin: 'shū', viet: 'Sách' },
+        { type: 'sentence', hanzi: '今天几号？', pinyin: 'Jīntiān jǐ hào?', viet: 'Hôm nay là ngày mấy?' },
+        { type: 'sentence', hanzi: '我去学校看书。', pinyin: 'Wǒ qù xuéxiào kàn shū.', viet: 'Tôi đến trường đọc sách.' },
+
+        // --- Bài 8 ---
+        { type: 'vocab', hanzi: '想', pinyin: 'xiǎng', viet: 'Muốn, nhớ' },
+        { type: 'vocab', hanzi: '喝', pinyin: 'hē', viet: 'Uống' },
+        { type: 'vocab', hanzi: '茶', pinyin: 'chá', viet: 'Trà' },
+        { type: 'vocab', hanzi: '吃', pinyin: 'chī', viet: 'Ăn' },
+        { type: 'vocab', hanzi: '米饭', pinyin: 'mǐfàn', viet: 'Cơm trắng' },
+        { type: 'vocab', hanzi: '下午', pinyin: 'xiàwǔ', viet: 'Buổi chiều' },
+        { type: 'vocab', hanzi: '商店', pinyin: 'shāngdiàn', viet: 'Cửa hàng' },
+        { type: 'vocab', hanzi: '买', pinyin: 'mǎi', viet: 'Mua' },
+        { type: 'vocab', hanzi: '个', pinyin: 'gè', viet: 'Cái, chiếc' },
+        { type: 'vocab', hanzi: '杯子', pinyin: 'bēizi', viet: 'Cái cốc' },
+        { type: 'vocab', hanzi: '多少', pinyin: 'duōshao', viet: 'Bao nhiêu' },
+        { type: 'vocab', hanzi: '钱', pinyin: 'qián', viet: 'Tiền' },
+        { type: 'vocab', hanzi: '块', pinyin: 'kuài', viet: 'Đồng, tệ' },
+        { type: 'sentence', hanzi: '你想喝什么？', pinyin: 'Nǐ xiǎng hē shénme?', viet: 'Bạn muốn uống gì?' },
+        { type: 'sentence', hanzi: '这个杯子多少钱？', pinyin: 'Zhège bēizi duōshao qián?', viet: 'Cái cốc này bao nhiêu tiền?' },
+
+        // --- Bài 9 ---
+        { type: 'vocab', hanzi: '小', pinyin: 'xiǎo', viet: 'Nhỏ, bé' },
+        { type: 'vocab', hanzi: '猫', pinyin: 'māo', viet: 'Con mèo' },
+        { type: 'vocab', hanzi: '在', pinyin: 'zài', viet: 'Ở, tại' },
+        { type: 'vocab', hanzi: '那儿', pinyin: 'nàr', viet: 'Chỗ kia' },
+        { type: 'vocab', hanzi: '狗', pinyin: 'gǒu', viet: 'Con chó' },
+        { type: 'vocab', hanzi: '椅子', pinyin: 'yǐzi', viet: 'Cái ghế' },
+        { type: 'vocab', hanzi: '下面', pinyin: 'xiàmian', viet: 'Bên dưới' },
+        { type: 'vocab', hanzi: '哪儿', pinyin: 'nǎr', viet: 'Ở đâu' },
+        { type: 'vocab', hanzi: '工作', pinyin: 'gōngzuò', viet: 'Công việc' },
+        { type: 'vocab', hanzi: '儿子', pinyin: 'érzi', viet: 'Con trai' },
+        { type: 'vocab', hanzi: '医院', pinyin: 'yīyuàn', viet: 'Bệnh viện' },
+        { type: 'vocab', hanzi: '医生', pinyin: 'yīshēng', viet: 'Bác sĩ' },
+        { type: 'vocab', hanzi: '爸爸', pinyin: 'bàba', viet: 'Bố' },
+        { type: 'sentence', hanzi: '小猫在哪儿？', pinyin: 'Xiǎomāo zài nǎr?', viet: 'Con mèo nhỏ ở đâu?' },
+        { type: 'sentence', hanzi: '你儿子在哪儿工作？', pinyin: 'Nǐ érzi zài nǎr gōngzuò?', viet: 'Con trai bạn làm việc ở đâu?' },
+
+        // --- Bài 10 ---
+        { type: 'vocab', hanzi: '桌子', pinyin: 'zhuōzi', viet: 'Cái bàn' },
+        { type: 'vocab', hanzi: '上', pinyin: 'shang', viet: 'Bên trên' },
+        { type: 'vocab', hanzi: '电脑', pinyin: 'diànnǎo', viet: 'Máy tính' },
+        { type: 'vocab', hanzi: '和', pinyin: 'hé', viet: 'Và' },
+        { type: 'vocab', hanzi: '本', pinyin: 'běn', viet: 'Quyển (sách)' },
+        { type: 'vocab', hanzi: '里', pinyin: 'li', viet: 'Bên trong' },
+        { type: 'vocab', hanzi: '前面', pinyin: 'qiánmiàn', viet: 'Phía trước' },
+        { type: 'vocab', hanzi: '后面', pinyin: 'hòumiàn', viet: 'Phía sau' },
+        { type: 'vocab', hanzi: '这儿', pinyin: 'zhèr', viet: 'Ở đây' },
+        { type: 'vocab', hanzi: '没有', pinyin: 'méiyǒu', viet: 'Không có' },
+        { type: 'vocab', hanzi: '能', pinyin: 'néng', viet: 'Có thể' },
+        { type: 'vocab', hanzi: '坐', pinyin: 'zuò', viet: 'Ngồi' },
+        { type: 'sentence', hanzi: '桌子上有什么？', pinyin: 'Zhuōzi shang yǒu shénme?', viet: 'Trên bàn có cái gì?' },
+        { type: 'sentence', hanzi: '我能坐这儿吗？', pinyin: 'Wǒ néng zuò zhèr ma?', viet: 'Tôi có thể ngồi đây không?' },
+
+        // --- Bài 11 ---
+        { type: 'vocab', hanzi: '现在', pinyin: 'xiànzài', viet: 'Bây giờ' },
+        { type: 'vocab', hanzi: '点', pinyin: 'diǎn', viet: 'Giờ' },
+        { type: 'vocab', hanzi: '分', pinyin: 'fēn', viet: 'Phút' },
+        { type: 'vocab', hanzi: '中午', pinyin: 'zhōngwǔ', viet: 'Buổi trưa' },
+        { type: 'vocab', hanzi: '吃饭', pinyin: 'chīfàn', viet: 'Ăn cơm' },
+        { type: 'vocab', hanzi: '时候', pinyin: 'shíhou', viet: 'Lúc, khi' },
+        { type: 'vocab', hanzi: '回', pinyin: 'huí', viet: 'Về' },
+        { type: 'vocab', hanzi: '我们', pinyin: 'wǒmen', viet: 'Chúng ta' },
+        { type: 'vocab', hanzi: '电影', pinyin: 'diànyǐng', viet: 'Phim' },
+        { type: 'vocab', hanzi: '住', pinyin: 'zhù', viet: 'Sống, ở' },
+        { type: 'vocab', hanzi: '前', pinyin: 'qián', viet: 'Trước (thời gian)' },
+        { type: 'sentence', hanzi: '现在几点？', pinyin: 'Xiànzài jǐ diǎn?', viet: 'Bây giờ là mấy giờ?' },
+        { type: 'sentence', hanzi: '我们什么时候去看电影？', pinyin: 'Wǒmen shénme shíhou qù kàn diànyǐng?', viet: 'Khi nào chúng ta đi xem phim?' },
+
+        // --- Bài 12 ---
+        { type: 'vocab', hanzi: '天气', pinyin: 'tiānqì', viet: 'Thời tiết' },
+        { type: 'vocab', hanzi: '怎么样', pinyin: 'zěnmeyàng', viet: 'Thế nào' },
+        { type: 'vocab', hanzi: '太', pinyin: 'tài', viet: 'Quá' },
+        { type: 'vocab', hanzi: '热', pinyin: 'rè', viet: 'Nóng' },
+        { type: 'vocab', hanzi: '冷', pinyin: 'lěng', viet: 'Lạnh' },
+        { type: 'vocab', hanzi: '下雨', pinyin: 'xià yǔ', viet: 'Mưa rơi' },
+        { type: 'vocab', hanzi: '小姐', pinyin: 'xiǎojiě', viet: 'Cô (gái)' },
+        { type: 'vocab', hanzi: '来', pinyin: 'lái', viet: 'Đến' },
+        { type: 'vocab', hanzi: '身体', pinyin: 'shēntǐ', viet: 'Sức khỏe' },
+        { type: 'vocab', hanzi: '爱', pinyin: 'ài', viet: 'Yêu, thích' },
+        { type: 'vocab', hanzi: '些', pinyin: 'xiē', viet: 'Một vài' },
+        { type: 'vocab', hanzi: '水果', pinyin: 'shuǐguǒ', viet: 'Hoa quả' },
+        { type: 'sentence', hanzi: '明天天气怎么样？', pinyin: 'Míngtiān tiānqì zěnmeyàng?', viet: 'Thời tiết ngày mai thế nào?' },
+        { type: 'sentence', hanzi: '今天会下雨吗？', pinyin: 'Jīntiān huí xià yǔ ma?', viet: 'Hôm nay có mưa không?' },
+
+        // --- Bài 13 ---
+        { type: 'vocab', hanzi: '喂', pinyin: 'wéi', viet: 'A lô' },
+        { type: 'vocab', hanzi: '也', pinyin: 'yě', viet: 'Cũng' },
+        { type: 'vocab', hanzi: '学习', pinyin: 'xuéxí', viet: 'Học tập' },
+        { type: 'vocab', hanzi: '上午', pinyin: 'shàngwǔ', viet: 'Buổi sáng' },
+        { type: 'vocab', hanzi: '睡觉', pinyin: 'shuìjiào', viet: 'Ngủ' },
+        { type: 'vocab', hanzi: '电视', pinyin: 'diànshì', viet: 'Tivi' },
+        { type: 'vocab', hanzi: '喜欢', pinyin: 'xǐhuan', viet: 'Thích' },
+        { type: 'vocab', hanzi: '给', pinyin: 'gěi', viet: 'Cho' },
+        { type: 'vocab', hanzi: '打电话', pinyin: 'dǎ diànhuà', viet: 'Gọi điện thoại' },
+        { type: 'vocab', hanzi: '吧', pinyin: 'ba', viet: 'Nhé, đi' },
+        { type: 'sentence', hanzi: '你在做什么呢？', pinyin: 'Nǐ zài zuò shénme ne?', viet: 'Bạn đang làm gì đấy?' },
+        { type: 'sentence', hanzi: '他在睡觉呢。', pinyin: 'Tā zài shuìjiào ne.', viet: 'Anh ấy đang ngủ.' },
+
+        // --- Bài 14 ---
+        { type: 'vocab', hanzi: '东西', pinyin: 'dōngxi', viet: 'Đồ đạc' },
+        { type: 'vocab', hanzi: '一点儿', pinyin: 'yìdiǎnr', viet: 'Một chút' },
+        { type: 'vocab', hanzi: '苹果', pinyin: 'píngguǒ', viet: 'Quả táo' },
+        { type: 'vocab', hanzi: '看见', pinyin: 'kànjiàn', viet: 'Nhìn thấy' },
+        { type: 'vocab', hanzi: '先生', pinyin: 'xiānsheng', viet: 'Ông, ngài' },
+        { type: 'vocab', hanzi: '开', pinyin: 'kāi', viet: 'Lái, mở' },
+        { type: 'vocab', hanzi: '车', pinyin: 'chē', viet: 'Xe' },
+        { type: 'vocab', hanzi: '回来', pinyin: 'huílái', viet: 'Trở về' },
+        { type: 'vocab', hanzi: '分钟', pinyin: 'fēnzhōng', viet: 'Phút' },
+        { type: 'vocab', hanzi: '后', pinyin: 'hòu', viet: 'Sau' },
+        { type: 'vocab', hanzi: '漂亮', pinyin: 'piàoliang', viet: 'Xinh đẹp' },
+        { type: 'vocab', hanzi: '少', pinyin: 'shǎo', viet: 'Ít' },
+        { type: 'vocab', hanzi: '衣服', pinyin: 'yīfu', viet: 'Quần áo' },
+        { type: 'vocab', hanzi: '都', pinyin: 'dōu', viet: 'Đều' },
+        { type: 'sentence', hanzi: '你买什么了？', pinyin: 'Nǐ mǎi shénme le?', viet: 'Bạn đã mua gì?' },
+        { type: 'sentence', hanzi: '她买了不少衣服。', pinyin: 'Tā mǎi le bù shǎo yīfu.', viet: 'Cô ấy đã mua không ít quần áo.' },
+
+        // --- Bài 15 ---
+        { type: 'vocab', hanzi: '认识', pinyin: 'rènshi', viet: 'Quen biết' },
+        { type: 'vocab', hanzi: '年', pinyin: 'nián', viet: 'Năm' },
+        { type: 'vocab', hanzi: '大学', pinyin: 'dàxué', viet: 'Đại học' },
+        { type: 'vocab', hanzi: '饭店', pinyin: 'fàndiàn', viet: 'Khách sạn' },
+        { type: 'vocab', hanzi: '出租车', pinyin: 'chūzūchē', viet: 'Taxi' },
+        { type: 'vocab', hanzi: '一起', pinyin: 'yìqǐ', viet: 'Cùng nhau' },
+        { type: 'vocab', hanzi: '高兴', pinyin: 'gāoxìng', viet: 'Vui vẻ' },
+        { type: 'vocab', hanzi: '听', pinyin: 'tīng', viet: 'Nghe' },
+        { type: 'vocab', hanzi: '飞机', pinyin: 'fēijī', viet: 'Máy bay' },
+        { type: 'sentence', hanzi: '你是怎么来的？', pinyin: 'Nǐ shì zěnme lái de?', viet: 'Bạn đến bằng phương tiện gì?' },
+        { type: 'sentence', hanzi: '很高兴认识你。', pinyin: 'Hěn gāoxìng rènshi nǐ.', viet: 'Rất vui được làm quen.' },
+
+        // --- Bài 16 (Số) ---
+        { type: 'vocab', hanzi: '零', pinyin: 'líng', viet: 'Số 0' },
+        { type: 'vocab', hanzi: '一', pinyin: 'yī', viet: 'Số 1' },
+        { type: 'vocab', hanzi: '二', pinyin: 'èr', viet: 'Số 2' },
+        { type: 'vocab', hanzi: '三', pinyin: 'sān', viet: 'Số 3' },
+        { type: 'vocab', hanzi: '四', pinyin: 'sì', viet: 'Số 4' },
+        { type: 'vocab', hanzi: '五', pinyin: 'wǔ', viet: 'Số 5' },
+        { type: 'vocab', hanzi: '六', pinyin: 'liù', viet: 'Số 6' },
+        { type: 'vocab', hanzi: '七', pinyin: 'qī', viet: 'Số 7' },
+        { type: 'vocab', hanzi: '八', pinyin: 'bā', viet: 'Số 8' },
+        { type: 'vocab', hanzi: '九', pinyin: 'jiǔ', viet: 'Số 9' },
+        { type: 'vocab', hanzi: '十', pinyin: 'shí', viet: 'Số 10' },
+        { type: 'vocab', hanzi: '十五', pinyin: 'shíwǔ', viet: 'Số 15' },
+        { type: 'vocab', hanzi: '二百', pinyin: 'èrbǎi', viet: 'Số 200' },
+        { type: 'vocab', hanzi: '一千', pinyin: 'yìqiān', viet: 'Số 1,000' },
+        { type: 'vocab', hanzi: '一百万', pinyin: 'yībǎi wàn', viet: '1 Triệu' },
+        { type: 'vocab', hanzi: '十亿', pinyin: 'shí yì', viet: '1 Tỉ' }
+    ];
+
+    let currentList = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let currentMode = 'all';
+
+    // Xáo trộn mảng (Fisher-Yates Shuffle)
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        
+        // Update button UI
+        document.querySelectorAll('.btn-mode').forEach(btn => btn.classList.remove('active'));
+        if(mode === 'vocab') document.querySelectorAll('.btn-mode')[0].classList.add('active');
+        else if(mode === 'sentence') document.querySelectorAll('.btn-mode')[1].classList.add('active');
+        else document.querySelectorAll('.btn-mode')[2].classList.add('active');
+
+        // Filter Data
+        if (mode === 'all') {
+            currentList = [...database];
+        } else {
+            currentList = database.filter(item => item.type === mode);
+        }
+
+        // Shuffle and Reset
+        currentList = shuffle(currentList);
+        currentIndex = 0;
+        resetCardState();
+        renderCard();
+    }
+
+    function resetCardState() {
+        isFlipped = false;
+        document.getElementById('flashcard').classList.remove('flipped');
+    }
+
+    function renderCard() {
+        if (currentList.length === 0) return;
+        
+        const item = currentList[currentIndex];
+        document.getElementById('card-hanzi').innerText = item.hanzi;
+        document.getElementById('card-hanzi-back').innerText = item.hanzi;
+        document.getElementById('card-pinyin').innerText = item.pinyin;
+        document.getElementById('card-meaning').innerText = item.viet;
+
+        // Auto speak if flipped? No, user requested manual button or auto on flip?
+        // User requested: "Tự động đọc khi bấm nút" -> Manual button trigger.
+        
+        updateCounter();
+    }
+
+    function updateCounter() {
+        document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
+    }
+
+    function flipCard() {
+        isFlipped = !isFlipped;
+        const card = document.getElementById('flashcard');
+        if (isFlipped) {
+            card.classList.add('flipped');
+        } else {
+            card.classList.remove('flipped');
+        }
+    }
+
+    function nextCard() {
+        // Go to next, loop back to start if end
+        currentIndex = (currentIndex + 1) % currentList.length;
+        resetCardState();
+        setTimeout(renderCard, 200); // Wait for flip back animation slightly
+    }
+
+    function speakText() {
+        if (currentList.length === 0) return;
+        const text = currentList[currentIndex].hanzi;
+        
+        // Web Speech API
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN'; // Set language to Chinese
+        utterance.rate = 0.8; // Slightly slower for learning
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Initialize
+    window.onload = function() {
+        setMode('all');
+    };
+
+</script>
+
+</body>
+</html>
