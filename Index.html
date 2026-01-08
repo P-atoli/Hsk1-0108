@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSK1 Flashcards</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        text-align: center;
+        padding: 20px;
+    }
+    #card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 85%;
+        margin: auto;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        font-size: 1.8rem;
+    }
+    #pinyin, #meaning {
+        font-size: 1.4rem;
+        margin-top: 10px;
+        color: #444;
+    }
+    .btn {
+        margin-top: 20px;
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-main { background: #4CAF50; color: white; }
+    .btn-sound { background: #2196F3; color: white; }
+</style>
+</head>
+
+<body>
+
+<h2>HSK 1 – Flashcards</h2>
+
+<div id="card">
+    <div id="hanzi">字</div>
+    <div id="pinyin"></div>
+    <div id="meaning"></div>
+</div>
+
+<button class="btn btn-main" onclick="nextWord()">Next</button>
+<button class="btn btn-sound" onclick="speakText()">Phát âm</button>
+
+<script>
+    /* ======================
+       DỮ LIỆU FLASHCARDS
+       ====================== */
+    const flashcards = [
+        {hanzi:"你好", pinyin:"nǐ hǎo", meaning:"xin chào"},
+        {hanzi:"谢谢", pinyin:"xièxie", meaning:"cảm ơn"},
+        {hanzi:"对不起", pinyin:"duìbuqǐ", meaning:"xin lỗi"},
+        {hanzi:"请", pinyin:"qǐng", meaning:"mời / làm ơn"},
+        {hanzi:"再见", pinyin:"zàijiàn", meaning:"tạm biệt"},
+        {hanzi:"老师", pinyin:"lǎoshī", meaning:"giáo viên"},
+        {hanzi:"学生", pinyin:"xuésheng", meaning:"học sinh"},
+        // 👉 Bạn có thể thêm toàn bộ từ vựng khác tại đây
+    ];
+
+    let currentIndex = 0;
+
+    function randomIndex() {
+        return Math.floor(Math.random() * flashcards.length);
+    }
+
+    function showWord() {
+        const item = flashcards[currentIndex];
+        document.getElementById("hanzi").innerText = item.hanzi;
+        document.getElementById("pinyin").innerText = item.pinyin;
+        document.getElementById("meaning").innerText = item.meaning;
+    }
+
+    function nextWord() {
+        currentIndex = randomIndex();
+        showWord();
+    }
+
+    /* ===========================
+       SỬA LỖI PHÁT ÂM CHO iPHONE
+       =========================== */
+    let cnVoice = null;
+
+    function loadVoices() {
+        const voices = speechSynthesis.getVoices();
+        cnVoice = voices.find(v => v.lang === "zh-CN") || voices[0];
+    }
+
+    speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    function speakText() {
+        const word = flashcards[currentIndex].hanzi;
+
+        if (!cnVoice) loadVoices();
+
+        const utter = new SpeechSynthesisUtterance(word);
+        utter.voice = cnVoice;
+        utter.lang = "zh-CN";
+        utter.rate = 0.85;
+
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+    }
+
+    // Random từ đầu tiên khi mở trang
+    nextWord();
+</script>
+
+</body>
+</html>
