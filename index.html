@@ -3,80 +3,270 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HSK1 Flashcards Chuẩn</title>
+<title>HSK1 Flashcards</title>
+
 <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
-    .card {
-        width: 90%; max-width: 400px; margin: 25px auto; background: white;
-        border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        padding: 50px 20px; min-height: 160px; display: flex;
-        flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
+    body {
+        font-family: Arial, sans-serif;
+        background: #f8f8f8;
+        margin: 0;
+        text-align: center;
+        padding: 20px;
     }
-    /* Mặt trước chữ Hán màu ĐEN theo yêu cầu */
-    #front { font-size: 45px; color: #000000; font-weight: bold; }
-    #back { margin-top: 25px; font-size: 22px; color: #2980b9; display: none; border-top: 1px solid #eee; padding-top: 15px; width: 100%; }
-    .meaning { color: #34495e; font-size: 19px; margin-top: 8px; }
-    button { padding: 12px 15px; margin: 5px; font-size: 15px; cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: white; }
-    .active { background: #2c3e50; color: white; }
-    .btn-main { background-color: #27ae60; color: white; border: none; font-weight: bold; }
+
+    h1 { margin-bottom: 10px; }
+
+    .btn-menu {
+        margin: 5px;
+        padding: 10px 18px;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    #flashcard {
+        margin: 20px auto;
+        width: 90%;
+        max-width: 380px;
+        height: 240px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 32px;
+        padding: 20px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .btn {
+        margin: 10px 5px;
+        padding: 10px 16px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-speak {
+        background: #ff5722;
+    }
 </style>
+</head>
+
+<body>
+
+<h1>HSK1 Flashcards</h1>
+
+<button class="btn-menu" onclick="setMode('vocab')">TỪ VỰNG</button>
+<button class="btn-menu" onclick="setMode('sentence')">CÂU THOẠI</button>
+<button class="btn-menu" onclick="setMode('all')">TẤT CẢ</button>
+
+<div id="flashcard" onclick="flipCard()">
+    <span id="front"></span>
+    <span id="back" style="display:none;font-size:22px;"></span>
+</div>
+
+<button class="btn" onclick="nextCard()">Tiếp theo</button>
+<button class="btn btn-speak" onclick="speak()">Phát âm</button>
+
 <script>
+// -----------------------------
+// 1. DỮ LIỆU TỪ VỰNG + CÂU THOẠI
+// -----------------------------
+
 const vocab = [
-    // Bài 1-15
-    ["你","nǐ","bạn"],["好","hǎo","tốt"],["您","nín","ngài"],["你们","nǐmen","các bạn"],["对不起","duìbuqǐ","xin lỗi"],["没关系","méi guānxi","không sao"],["谢谢","xièxie","cảm ơn"],["不客气","bú kèqi","không có gì"],["再见","zàijiàn","tạm biệt"],["叫","jiào","gọi"],["什么","shénme","gì"],["名字","míngzi","tên"],["我","wǒ","tôi"],["是","shì","là"],["老师","lǎoshī","giáo viên"],["学生","xuésheng","học sinh"],["人","rén","người"],["中国","Zhōngguó","Trung Quốc"],["美国","Měiguó","Mỹ"],["她","tā","cô ấy"],["谁","shéi","ai"],["的","de","của"],["汉语","Hànyǔ","tiếng Trung"],["哪","nǎ","nào"],["国","guó","nước"],["他","tā","anh ấy"],["同学","tóngxué","bạn học"],["朋友","péngyou","bạn bè"],["家","jiā","nhà"],["几","jǐ","mấy"],["女儿","nǚ’ér","con gái"],["岁","suì","tuổi"],["会","huì","biết"],["说","shuō","nói"],["菜","cài","món ăn"],["很","hěn","rất"],["好吃","hǎochī","ngon"],["做","zuò","làm"],["写","xiě","viết"],["汉字","Hànzì","chữ Hán"],["想","xiǎng","muốn"],["喝","hē","uống"],["茶","chá","trà"],["下午","xiàwǔ","buổi chiều"],["商店","shāngdiàn","cửa hàng"],["买","mǎi","mua"],["个","gè","cái"],["杯子","bēizi","cái cốc"],["钱","qián","tiền"],["块","kuài","đồng"],["在哪儿","zài nǎr","ở đâu"],["工作","gōngzuò","làm việc"],["儿子","érzi","con trai"],["医院","yīyuàn","bệnh viện"],["医生","yīshēng","bác sĩ"],["桌子","zhuōzi","bàn"],["现在","xiànzài","bây giờ"],["点","diǎn","giờ"],["分","fēn","phút"],["时候","shíhou","khi"],["回","huí","về"],["电影","diànyǐng","phim"],["天气","tiānqì","thời tiết"],["怎么样","zěnmeyàng","thế nào"],["下雨","xiàyǔ","mưa"],["身体","shēntǐ","sức khỏe"],["水果","shuǐguǒ","hoa quả"],["打电话","dǎ diànhuà","gọi điện"],["漂亮","piàoliang","đẹp"],["衣服","yīfu","quần áo"],["认识","rènshi","quen biết"],["高兴","gāoxìng","vui"],["飞机","fēijī","máy bay"],
-    // Số đếm yêu cầu
-    ["零","líng","0"],["一","yī","1"],["二","èr","2"],["三","sān","3"],["四","sì","4"],["五","wǔ","5"],["六","liù","6"],["七","qī","7"],["八","bā","8"],["九","jiǔ","9"],["十","shí","10"],["十一","shíyī","11"],["十二","shí’èr","12"],["十三","shísān","13"],["十四","shísì","14"],["十五","shíwǔ","15"],["一百","yìbǎi","100"],["一千","yìqiān","1000"],["一百万","yìbǎiwàn","1 triệu"],["十亿","shíyì","1 tỉ"]
+    ["你","nǐ","bạn"],
+    ["好","hǎo","tốt"],
+    ["您","nín","ngài"],
+    ["你们","nǐmen","các bạn"],
+    ["对不起","duìbuqǐ","xin lỗi"],
+    ["没关系","méi guānxi","không sao"],
+
+    ["谢谢","xièxie","cảm ơn"],
+    ["不客气","bú kèqi","không có gì"],
+    ["再见","zàijiàn","tạm biệt"],
+
+    ["叫","jiào","tên là"],
+    ["什么","shénme","gì"],
+    ["名字","míngzi","tên"],
+    ["我","wǒ","tôi"],
+    ["是","shì","là"],
+    ["老师","lǎoshī","giáo viên"],
+    ["学生","xuésheng","học sinh"],
+    ["中国","Zhōngguó","Trung Quốc"],
+    ["美国","Měiguó","Mỹ"],
+
+    ["她","tā","cô ấy"],
+    ["谁","shéi","ai"],
+    ["汉语","Hànyǔ","tiếng Trung"],
+
+    ["家","jiā","nhà"],
+    ["有","yǒu","có"],
+    ["女儿","nǚ'ér","con gái"],
+
+    ["会","huì","biết"],
+    ["说","shuō","nói"],
+    ["写","xiě","viết"],
+    ["汉字","Hànzì","chữ Hán"],
+
+    ["今天","jīntiān","hôm nay"],
+    ["几号","jǐ hào","ngày mấy"],
+    ["月","yuè","tháng"],
+    ["星期","xīngqī","thứ"],
+
+    ["想","xiǎng","muốn"],
+    ["喝","hē","uống"],
+    ["吃","chī","ăn"],
+    ["米饭","mǐfàn","cơm"],
+
+    ["小","xiǎo","nhỏ"],
+    ["猫","māo","mèo"],
+    ["在","zài","ở"],
+    ["哪儿","nǎr","đâu"],
+
+    ["桌子","zhuōzi","bàn"],
+    ["电脑","diànnǎo","máy tính"],
+
+    ["现在","xiànzài","bây giờ"],
+    ["点","diǎn","giờ"],
+    ["分","fēn","phút"],
+
+    ["天气","tiānqì","thời tiết"],
+    ["热","rè","nóng"],
+    ["冷","lěng","lạnh"],
+
+    ["学习","xuéxí","học"],
+    ["睡觉","shuìjiào","ngủ"],
+
+    ["东西","dōngxi","đồ đạc"],
+    ["漂亮","piàoliang","đẹp"],
+
+    ["认识","rènshi","quen biết"],
+    ["飞机","fēijī","máy bay"]
 ];
 
 const sentences = [
-    ["你好！","Nǐ hǎo!","Xin chào!"],["你叫什么名字？","Nǐ jiào shénme míngzi?","Bạn tên là gì?"],["你是哪国人？","Nǐ shì nǎ guó rén?","Bạn là người nước nào?"],["家有几口人？","Jiā yǒu jǐ kǒu rén?","Nhà có mấy người?"],["你会说汉语吗？","Nǐ huì shuō Hànyǔ ma?","Bạn biết nói tiếng Trung không?"],["这个杯子多少钱？","Zhège bēizi duōshao qián?","Cái cốc này bao nhiêu tiền?"],["你儿子在哪儿工作？","Nǐ érzi zài nǎr gōngzuò?","Con trai bạn làm việc ở đâu?"],["现在几点？","Xiànzài jǐ diǎn?","Bây giờ mấy giờ?"],["明天天气怎么样？","Míngtiān tiānqì zěnmeyàng?","Ngày mai thời tiết thế nào?"],["你在做什么呢？","Nǐ zài zuò shénme ne?","Bạn đang làm gì thế?"],["这些衣服都很漂亮。","Zhèxiē yīfu dōu hěn piàoliang.","Mấy bộ quần áo này đều rất đẹp."],["很高兴认识你！","Hěn gāoxìng rènshi nǐ!","Rất vui được quen biết bạn!"]
+    ["你好！","Nǐ hǎo!","Xin chào!"],
+    ["您好！","Nín hǎo!","Chào ngài!"],
+    ["你们好！","Nǐmen hǎo!","Chào các bạn!"],
+    ["对不起！","Duìbuqǐ!","Xin lỗi!"],
+    ["没关系！","Méi guānxi!","Không sao!"],
+
+    ["谢谢你！","Xièxie nǐ!","Cảm ơn bạn!"],
+    ["不客气！","Bú kèqi!","Không có gì!"],
+    ["再见！","Zàijiàn!","Tạm biệt!"],
+
+    ["你叫什么名字？","Nǐ jiào shénme míngzi?","Bạn tên là gì?"],
+    ["我叫李月。","Wǒ jiào Lǐ Yuè.","Tôi tên là Lý Nguyệt."],
+    ["你是老师吗？","Nǐ shì lǎoshī ma?","Bạn là giáo viên phải không?"],
+    ["我不是老师，我是学生。","Wǒ bú shì lǎoshī, wǒ shì xuésheng.","Tôi không phải giáo viên, tôi là học sinh."],
+
+    ["她是我的汉语老师。","Tā shì wǒ de Hànyǔ lǎoshī.","Cô ấy là giáo viên tiếng Trung của tôi."],
+    ["他是谁？","Tā shì shéi?","Anh ấy là ai?"],
+
+    ["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","Nhà bạn có mấy người?"],
+    ["你女儿几岁了？","Nǚ'ér jǐ suì le?","Con gái bạn mấy tuổi?"],
+
+    ["你会说汉语吗？","Nǐ huì shuō Hànyǔ ma?","Bạn biết nói tiếng Trung không?"],
+    ["中国菜很好吃。","Zhōngguó cài hěn hǎochī.","Món Trung Quốc rất ngon."],
+
+    ["请问，今天几号？","Qǐngwèn, jīntiān jǐ hào?","Hôm nay là ngày mấy?"],
+    ["今天星期几？","Jīntiān xīngqī jǐ?","Hôm nay thứ mấy?"],
+
+    ["你想喝什么？","Nǐ xiǎng hē shénme?","Bạn muốn uống gì?"],
+    ["我想喝茶。","Wǒ xiǎng hē chá.","Tôi muốn uống trà."],
+
+    ["小猫在哪儿？","Xiǎomāo zài nǎr?","Con mèo nhỏ ở đâu?"],
+    ["小狗在椅子下面。","Xiǎogǒu zài yǐzi xiàmian.","Con chó nhỏ ở dưới ghế."],
+
+    ["我能坐这儿吗？","Wǒ néng zuò zhèr ma?","Tôi có thể ngồi đây không?"],
+
+    ["现在几点？","Xiànzài jǐ diǎn?","Bây giờ là mấy giờ?"],
+
+    ["明天天气怎么样？","Míngtiān tiānqì zěnmeyàng?","Thời tiết ngày mai thế nào?"],
+
+    ["喂，你在做什么呢？","Wéi, nǐ zài zuò shénme ne?","A lô, bạn đang làm gì?"],
+    ["我在看书呢。","Wǒ zài kàn shū ne.","Tôi đang đọc sách."],
+
+    ["她买了不少衣服。","Tā mǎi le bù shǎo yīfu.","Cô ấy mua không ít quần áo."],
+
+    ["我是坐飞机来的。","Wǒ shì zuò fēijī lái de.","Tôi đi máy bay đến đây."],
+    ["很高兴认识你。","Hěn gāoxìng rènshi nǐ.","Rất vui được gặp bạn."]
 ];
 
-let mode = "all";
-let currentItem = [];
+// -----------------------------
+// 2. CHẾ ĐỘ HIỂN THỊ
+// -----------------------------
 
-function showRandom(){
-    const list = mode==="vocab" ? vocab : mode==="sent" ? sentences : vocab.concat(sentences);
-    currentItem = list[Math.floor(Math.random()*list.length)];
-    document.getElementById("front").innerText = currentItem[0];
-    document.getElementById("back").innerHTML = `<div>${currentItem[1]}</div><div class="meaning">${currentItem[2]}</div>`;
-    document.getElementById("back").style.display = "none";
-}
+let mode = "vocab";
+let currentData = vocab;
+let index = 0;
+let showingFront = true;
 
-function flip(){
-    const back = document.getElementById("back");
-    back.style.display = back.style.display==="none" ? "block" : "none";
-}
-
-function setMode(m, btn){
+function setMode(m) {
     mode = m;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    showRandom();
+    if (m === "vocab") currentData = vocab;
+    else if (m === "sentence") currentData = sentences;
+    else currentData = vocab.concat(sentences);
+    nextCard();
 }
 
-function speak(){
+function nextCard() {
+    index = Math.floor(Math.random() * currentData.length);
+    showingFront = true;
+    document.getElementById("front").style.display = "block";
+    document.getElementById("back").style.display = "none";
+
+    document.getElementById("front").innerText = currentData[index][0];
+    document.getElementById("back").innerText = currentData[index][1] + "\n" + currentData[index][2];
+}
+
+function flipCard() {
+    showingFront = !showingFront;
+    document.getElementById("front").style.display = showingFront ? "block" : "none";
+    document.getElementById("back").style.display = showingFront ? "none" : "block";
+}
+
+// -----------------------------
+// 3. SỬA LỖI PHÁT ÂM (iOS + Android + Chrome)
+// -----------------------------
+function speak() {
     const text = document.getElementById("front").innerText;
-    window.speechSynthesis.cancel(); // Ngắt âm cũ nếu đang phát
+
+    if (!text) return;
+
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "zh-CN";
-    window.speechSynthesis.speak(utter);
+    utter.rate = 0.9;
+
+    // BẮT BUỘC CHO iOS
+    if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+    }
+
+    let voices = speechSynthesis.getVoices();
+
+    if (!voices.length) {
+        speechSynthesis.onvoiceschanged = () => {
+            voices = speechSynthesis.getVoices();
+            utter.voice = voices.find(v => v.lang === "zh-CN") || voices[0];
+            speechSynthesis.speak(utter);
+        };
+    } else {
+        utter.voice = voices.find(v => v.lang === "zh-CN") || voices[0];
+        speechSynthesis.speak(utter);
+    }
 }
+
+nextCard();
 </script>
-</head>
-<body onload="showRandom()">
-    <h2>HSK1 Flashcards Chuẩn</h2>
-    <div>
-        <button class="mode-btn" onclick="setMode('vocab', this)">TỪ VỰNG</button>
-        <button class="mode-btn" onclick="setMode('sent', this)">CÂU THOẠI</button>
-        <button class="mode-btn active" onclick="setMode('all', this)">TẤT CẢ</button>
-    </div>
-    <div class="card" onclick="flip()">
-        <div id="front"></div>
-        <div id="back"></div>
-    </div>
-    <button class="btn-main" onclick="flip()">LẬT THẺ</button>
-    <button class="btn-main" onclick="showRandom()">THẺ TIẾP THEO</button>
-    <button class="btn-main" onclick="speak()">🔊 PHÁT ÂM</button>
+
 </body>
 </html>
