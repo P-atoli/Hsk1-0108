@@ -1,305 +1,82 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSK 1 - Ôn Tập Tổng Hợp 16 Bài</title>
-    <style>
-        :root {
-            --primary: #c0392b;
-            --accent: #2980b9;
-            --bg: #f0f2f5;
-            --card-front: #ffffff;
-            --card-back: #fffcf0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .header-title { color: #2c3e50; margin-bottom: 15px; font-size: 1.5rem; text-align: center; font-weight: bold; }
-        
-        .mode-selector { display: flex; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
-        .btn-mode {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 20px;
-            background: #d1d8e0;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: 0.3s;
-        }
-        .btn-mode.active { background: var(--primary); color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-
-        .card-container {
-            width: 100%;
-            max-width: 380px;
-            height: 280px;
-            perspective: 1000px;
-            margin-bottom: 30px;
-        }
-
-        .flashcard {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-
-        .flashcard.flipped { transform: rotateY(180deg); }
-
-        .face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 25px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-
-        .front { background: var(--card-front); border-bottom: 5px solid #ecf0f1; }
-        .back { background: var(--card-back); transform: rotateY(180deg); border: 2px solid var(--primary); }
-
-        .hanzi { font-size: 3.8rem; color: var(--primary); margin: 0; line-height: 1.2; word-break: break-all; }
-        .pinyin { font-size: 1.5rem; color: var(--accent); margin: 12px 0; font-weight: 500; }
-        .meaning { font-size: 1.2rem; color: #34495e; line-height: 1.4; font-weight: bold; }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            width: 100%;
-            max-width: 380px;
-        }
-
-        .btn-tool {
-            border: none;
-            padding: 15px 5px;
-            border-radius: 15px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .btn-tool:active { transform: scale(0.95); }
-        .btn-flip { background: #f1c40f; color: #2c3e50; }
-        .btn-speak { background: #2ecc71; }
-        .btn-next { background: #3498db; }
-
-        .counter { margin-top: 25px; color: #95a5a6; font-size: 1rem; font-weight: bold; }
-        audio { display: none; }
-    </style>
-</head>
-<body>
-
-    <div class="header-title">HSK 1 - ÔN TẬP 16 BÀI</div>
-
-    <div class="mode-selector">
-        <button class="btn-mode" onclick="setMode('vocab')">Từ vựng</button>
-        <button class="btn-mode" onclick="setMode('sentence')">Câu thoại</button>
-        <button class="btn-mode active" onclick="setMode('all')">Tất cả</button>
-    </div>
-
-    <div class="card-container" onclick="flipCard()">
-        <div class="flashcard" id="flashcard">
-            <div class="face front">
-                <div class="hanzi" id="display-hanzi">...</div>
-                <div style="color: #bdc3c7; font-size: 0.8rem; margin-top: 15px;">(Chạm để lật)</div>
-            </div>
-            <div class="face back">
-                <div class="pinyin" id="display-pinyin">...</div>
-                <div class="meaning" id="display-meaning">...</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button class="btn-tool btn-flip" onclick="event.stopPropagation(); flipCard();">🔄<span>Lật thẻ</span></button>
-        <button class="btn-tool btn-speak" onclick="event.stopPropagation(); speakGoogle();">🔊<span>Phát âm</span></button>
-        <button class="btn-tool btn-next" onclick="event.stopPropagation(); nextCard();">➡<span>Tiếp theo</span></button>
-    </div>
-
-    <div class="counter" id="counter">0 / 0</div>
-
-    <audio id="google-tts"></audio>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSK1 Flashcards Chuẩn</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
+    .card {
+        width: 90%; max-width: 400px; margin: 25px auto; background: white;
+        border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        padding: 50px 20px; min-height: 160px; display: flex;
+        flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
+    }
+    /* Mặt trước chữ Hán màu ĐEN theo yêu cầu */
+    #front { font-size: 45px; color: #000000; font-weight: bold; }
+    #back { margin-top: 25px; font-size: 22px; color: #2980b9; display: none; border-top: 1px solid #eee; padding-top: 15px; width: 100%; }
+    .meaning { color: #34495e; font-size: 19px; margin-top: 8px; }
+    button { padding: 12px 15px; margin: 5px; font-size: 15px; cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: white; }
+    .active { background: #2c3e50; color: white; }
+    .btn-main { background-color: #27ae60; color: white; border: none; font-weight: bold; }
+</style>
 <script>
-    const database = [
-        // BÀI 1-2: CHÀO HỎI & CẢM ƠN
-        { type: 'vocab', hanzi: '你', pinyin: 'nǐ', viet: 'Bạn, anh, chị' },
-        { type: 'vocab', hanzi: '好', pinyin: 'hǎo', viet: 'Tốt, khỏe' },
-        { type: 'vocab', hanzi: '您', pinyin: 'nín', viet: 'Ngài (kính ngữ)' },
-        { type: 'vocab', hanzi: '你们', pinyin: 'nǐmen', viet: 'Các bạn' },
-        { type: 'vocab', hanzi: '对不起', pinyin: 'duìbuqǐ', viet: 'Xin lỗi' },
-        { type: 'vocab', hanzi: '没关系', pinyin: 'méi guānxi', viet: 'Không sao' },
-        { type: 'vocab', hanzi: '谢谢', pinyin: 'xièxie', viet: 'Cảm ơn' },
-        { type: 'vocab', hanzi: '不客气', pinyin: 'bú kèqi', viet: 'Đừng khách sáo' },
-        { type: 'vocab', hanzi: '再见', pinyin: 'zàijiàn', viet: 'Tạm biệt' },
-        { type: 'sentence', hanzi: '你好！', pinyin: 'Nǐ hǎo!', viet: 'Xin chào!' },
-        { type: 'sentence', hanzi: '不客气。', pinyin: 'Bú kèqi.', viet: 'Đừng khách sáo.' },
+const vocab = [
+    // Bài 1-15
+    ["你","nǐ","bạn"],["好","hǎo","tốt"],["您","nín","ngài"],["你们","nǐmen","các bạn"],["对不起","duìbuqǐ","xin lỗi"],["没关系","méi guānxi","không sao"],["谢谢","xièxie","cảm ơn"],["不客气","bú kèqi","không có gì"],["再见","zàijiàn","tạm biệt"],["叫","jiào","gọi"],["什么","shénme","gì"],["名字","míngzi","tên"],["我","wǒ","tôi"],["是","shì","là"],["老师","lǎoshī","giáo viên"],["学生","xuésheng","học sinh"],["人","rén","người"],["中国","Zhōngguó","Trung Quốc"],["美国","Měiguó","Mỹ"],["她","tā","cô ấy"],["谁","shéi","ai"],["的","de","của"],["汉语","Hànyǔ","tiếng Trung"],["哪","nǎ","nào"],["国","guó","nước"],["他","tā","anh ấy"],["同学","tóngxué","bạn học"],["朋友","péngyou","bạn bè"],["家","jiā","nhà"],["几","jǐ","mấy"],["女儿","nǚ’ér","con gái"],["岁","suì","tuổi"],["会","huì","biết"],["说","shuō","nói"],["菜","cài","món ăn"],["很","hěn","rất"],["好吃","hǎochī","ngon"],["做","zuò","làm"],["写","xiě","viết"],["汉字","Hànzì","chữ Hán"],["想","xiǎng","muốn"],["喝","hē","uống"],["茶","chá","trà"],["下午","xiàwǔ","buổi chiều"],["商店","shāngdiàn","cửa hàng"],["买","mǎi","mua"],["个","gè","cái"],["杯子","bēizi","cái cốc"],["钱","qián","tiền"],["块","kuài","đồng"],["在哪儿","zài nǎr","ở đâu"],["工作","gōngzuò","làm việc"],["儿子","érzi","con trai"],["医院","yīyuàn","bệnh viện"],["医生","yīshēng","bác sĩ"],["桌子","zhuōzi","bàn"],["现在","xiànzài","bây giờ"],["点","diǎn","giờ"],["分","fēn","phút"],["时候","shíhou","khi"],["回","huí","về"],["电影","diànyǐng","phim"],["天气","tiānqì","thời tiết"],["怎么样","zěnmeyàng","thế nào"],["下雨","xiàyǔ","mưa"],["身体","shēntǐ","sức khỏe"],["水果","shuǐguǒ","hoa quả"],["打电话","dǎ diànhuà","gọi điện"],["漂亮","piàoliang","đẹp"],["衣服","yīfu","quần áo"],["认识","rènshi","quen biết"],["高兴","gāoxìng","vui"],["飞机","fēijī","máy bay"],
+    // Số đếm yêu cầu
+    ["零","líng","0"],["一","yī","1"],["二","èr","2"],["三","sān","3"],["四","sì","4"],["五","wǔ","5"],["六","liù","6"],["七","qī","7"],["八","bā","8"],["九","jiǔ","9"],["十","shí","10"],["十一","shíyī","11"],["十二","shí’èr","12"],["十三","shísān","13"],["十四","shísì","14"],["十五","shíwǔ","15"],["一百","yìbǎi","100"],["一千","yìqiān","1000"],["一百万","yìbǎiwàn","1 triệu"],["十亿","shíyì","1 tỉ"]
+];
 
-        // BÀI 3-4: TÊN TUỔI & QUỐC TỊCH
-        { type: 'vocab', hanzi: '叫', pinyin: 'jiào', viet: 'Tên là, gọi là' },
-        { type: 'vocab', hanzi: '什么', pinyin: 'shénme', viet: 'Cái gì' },
-        { type: 'vocab', hanzi: '名字', pinyin: 'míngzi', viet: 'Tên' },
-        { type: 'vocab', hanzi: '我', pinyin: 'wǒ', viet: 'Tôi, tớ' },
-        { type: 'vocab', hanzi: '老师', pinyin: 'lǎoshī', viet: 'Giáo viên' },
-        { type: 'vocab', hanzi: '学生', pinyin: 'xuésheng', viet: 'Học sinh' },
-        { type: 'vocab', hanzi: '中国', pinyin: 'Zhōngguó', viet: 'Trung Quốc' },
-        { type: 'vocab', hanzi: '美国', pinyin: 'Měiguó', viet: 'Mỹ' },
-        { type: 'vocab', hanzi: '谁', pinyin: 'shéi', viet: 'Ai' },
-        { type: 'vocab', hanzi: '汉语', pinyin: 'Hànyǔ', viet: 'Tiếng Trung' },
-        { type: 'sentence', hanzi: '你叫什么名字？', pinyin: 'Nǐ jiào shénme míngzi?', viet: 'Bạn tên là gì?' },
-        { type: 'sentence', hanzi: '她是我的汉语老师。', pinyin: 'Tā shì wǒ de Hànyǔ lǎoshī.', viet: 'Cô ấy là giáo viên tiếng Trung của tôi.' },
+const sentences = [
+    ["你好！","Nǐ hǎo!","Xin chào!"],["你叫什么名字？","Nǐ jiào shénme míngzi?","Bạn tên là gì?"],["你是哪国人？","Nǐ shì nǎ guó rén?","Bạn là người nước nào?"],["家有几口人？","Jiā yǒu jǐ kǒu rén?","Nhà có mấy người?"],["你会说汉语吗？","Nǐ huì shuō Hànyǔ ma?","Bạn biết nói tiếng Trung không?"],["这个杯子多少钱？","Zhège bēizi duōshao qián?","Cái cốc này bao nhiêu tiền?"],["你儿子在哪儿工作？","Nǐ érzi zài nǎr gōngzuò?","Con trai bạn làm việc ở đâu?"],["现在几点？","Xiànzài jǐ diǎn?","Bây giờ mấy giờ?"],["明天天气怎么样？","Míngtiān tiānqì zěnmeyàng?","Ngày mai thời tiết thế nào?"],["你在做什么呢？","Nǐ zài zuò shénme ne?","Bạn đang làm gì thế?"],["这些衣服都很漂亮。","Zhèxiē yīfu dōu hěn piàoliang.","Mấy bộ quần áo này đều rất đẹp."],["很高兴认识你！","Hěn gāoxìng rènshi nǐ!","Rất vui được quen biết bạn!"]
+];
 
-        // BÀI 5-6: GIA ĐÌNH & KỸ NĂNG
-        { type: 'vocab', hanzi: '家', pinyin: 'jiā', viet: 'Nhà, gia đình' },
-        { type: 'vocab', hanzi: '几', pinyin: 'jǐ', viet: 'Mấy' },
-        { type: 'vocab', hanzi: '口', pinyin: 'kǒu', viet: 'Lượng từ (người trong gia đình)' },
-        { type: 'vocab', hanzi: '女儿', pinyin: 'nǚ\'ér', viet: 'Con gái' },
-        { type: 'vocab', hanzi: '岁', pinyin: 'suì', viet: 'Tuổi' },
-        { type: 'vocab', hanzi: '会', pinyin: 'huì', viet: 'Biết (kỹ năng qua học tập)' },
-        { type: 'vocab', hanzi: '说', pinyin: 'shuō', viet: 'Nói' },
-        { type: 'vocab', hanzi: '做', pinyin: 'zuò', viet: 'Làm, nấu' },
-        { type: 'vocab', hanzi: '好吃', pinyin: 'hǎochī', viet: 'Ngon' },
-        { type: 'sentence', hanzi: '你家有几口人？', pinyin: 'Nǐ jiā yǒu jǐ kǒu rén?', viet: 'Nhà bạn có mấy người?' },
-        { type: 'sentence', hanzi: '我会做中国菜。', pinyin: 'Wǒ huì zuò Zhōngguó cài.', viet: 'Tôi biết nấu món Trung Quốc.' },
+let mode = "all";
+let currentItem = [];
 
-        // BÀI 7-8: THỜI GIAN & MUA SẮM
-        { type: 'vocab', hanzi: '今天', pinyin: 'jīntiān', viet: 'Hôm nay' },
-        { type: 'vocab', hanzi: '月', pinyin: 'yuè', viet: 'Tháng' },
-        { type: 'vocab', hanzi: '号', pinyin: 'hào', viet: 'Ngày' },
-        { type: 'vocab', hanzi: '星期', pinyin: 'xīngqī', viet: 'Thứ, tuần' },
-        { type: 'vocab', hanzi: '想', pinyin: 'xiǎng', viet: 'Muốn, nhớ' },
-        { type: 'vocab', hanzi: '喝', pinyin: 'hē', viet: 'Uống' },
-        { type: 'vocab', hanzi: '茶', pinyin: 'chá', viet: 'Trà' },
-        { type: 'vocab', hanzi: '多少', pinyin: 'duōshao', viet: 'Bao nhiêu' },
-        { type: 'vocab', hanzi: '钱', pinyin: 'qián', viet: 'Tiền' },
-        { type: 'vocab', hanzi: '块', pinyin: 'kuài', viet: 'Đồng (đơn vị tiền)' },
-        { type: 'sentence', hanzi: '今天几号？', pinyin: 'Jīntiān jǐ hào?', viet: 'Hôm nay ngày mấy?' },
-        { type: 'sentence', hanzi: '这个杯子多少钱？', pinyin: 'Zhège bēizi duōshao qián?', viet: 'Cái cốc này bao nhiêu tiền?' },
+function showRandom(){
+    const list = mode==="vocab" ? vocab : mode==="sent" ? sentences : vocab.concat(sentences);
+    currentItem = list[Math.floor(Math.random()*list.length)];
+    document.getElementById("front").innerText = currentItem[0];
+    document.getElementById("back").innerHTML = `<div>${currentItem[1]}</div><div class="meaning">${currentItem[2]}</div>`;
+    document.getElementById("back").style.display = "none";
+}
 
-        // BÀI 9-10: VỊ TRÍ
-        { type: 'vocab', hanzi: '在', pinyin: 'zài', viet: 'Ở, tại' },
-        { type: 'vocab', hanzi: '哪儿', pinyin: 'nǎr', viet: 'Ở đâu' },
-        { type: 'vocab', hanzi: '小猫', pinyin: 'xiǎomāo', viet: 'Con mèo nhỏ' },
-        { type: 'vocab', hanzi: '椅子', pinyin: 'yǐzi', viet: 'Cái ghế' },
-        { type: 'vocab', hanzi: '下面', pinyin: 'xiàmian', viet: 'Bên dưới' },
-        { type: 'vocab', hanzi: '桌子', pinyin: 'zhuōzi', viet: 'Cái bàn' },
-        { type: 'vocab', hanzi: '上面', pinyin: 'shàngmian', viet: 'Bên trên' },
-        { type: 'vocab', hanzi: '里', pinyin: 'lǐ', viet: 'Trong' },
-        { type: 'sentence', hanzi: '小狗在椅子下面。', pinyin: 'Xiǎogǒu zài yǐzi xiàmian.', viet: 'Con chó nhỏ ở dưới ghế.' },
+function flip(){
+    const back = document.getElementById("back");
+    back.style.display = back.style.display==="none" ? "block" : "none";
+}
 
-        // BÀI 11-12: GIỜ GIẤC & THỜI TIẾT
-        { type: 'vocab', hanzi: '现在', pinyin: 'xiànzài', viet: 'Bây giờ' },
-        { type: 'vocab', hanzi: '点', pinyin: 'diǎn', viet: 'Giờ' },
-        { type: 'vocab', hanzi: '分', pinyin: 'fēn', viet: 'Phút' },
-        { type: 'vocab', hanzi: '中午', pinyin: 'zhōngwǔ', viet: 'Buổi trưa' },
-        { type: 'vocab', hanzi: '天气', pinyin: 'tiānqì', viet: 'Thời tiết' },
-        { type: 'vocab', hanzi: '太', pinyin: 'tài', viet: 'Quá, lắm' },
-        { type: 'vocab', hanzi: '热', pinyin: 'rè', viet: 'Nóng' },
-        { type: 'vocab', hanzi: '冷', pinyin: 'lěng', viet: 'Lạnh' },
-        { type: 'vocab', hanzi: '下雨', pinyin: 'xià yǔ', viet: 'Mưa' },
-        { type: 'sentence', hanzi: '现在十点十分。', pinyin: 'Xiànzài shí diǎn shí fēn.', viet: 'Bây giờ là 10 giờ 10 phút.' },
-        { type: 'sentence', hanzi: '明天天气怎么样？', pinyin: 'Míngtiān tiānqì zěnmeyàng?', viet: 'Ngày mai thời tiết thế nào?' },
+function setMode(m, btn){
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showRandom();
+}
 
-        // BÀI 13-15: ĐIỆN THOẠI & PHƯƠNG TIỆN
-        { type: 'vocab', hanzi: '喂', pinyin: 'wéi', viet: 'A lô' },
-        { type: 'vocab', hanzi: '打电话', pinyin: 'dǎ diànhuà', viet: 'Gọi điện thoại' },
-        { type: 'vocab', hanzi: '学习', pinyin: 'xuéxí', viet: 'Học tập' },
-        { type: 'vocab', hanzi: '东西', pinyin: 'dōngxi', viet: 'Đồ đạc' },
-        { type: 'vocab', hanzi: '漂亮', pinyin: 'piàoliang', viet: 'Xinh đẹp' },
-        { type: 'vocab', hanzi: '认识', pinyin: 'rènshi', viet: 'Quen biết' },
-        { type: 'vocab', hanzi: '出租车', pinyin: 'chūzūchē', viet: 'Xe Taxi' },
-        { type: 'vocab', hanzi: '高兴', pinyin: 'gāoxìng', viet: 'Vui mừng' },
-        { type: 'sentence', hanzi: '你在做什么呢？', pinyin: 'Nǐ zài zuò shénme ne?', viet: 'Bạn đang làm gì đấy?' },
-        { type: 'sentence', hanzi: '很高兴认识你。', pinyin: 'Hěn gāoxìng rènshi nǐ.', viet: 'Rất vui được làm quen.' },
-
-        // BÀI 16: SỐ ĐẾM (BỔ SUNG)
-        { type: 'vocab', hanzi: '零', pinyin: 'líng', viet: 'Số 0' },
-        { type: 'vocab', hanzi: '十五', pinyin: 'shíwǔ', viet: 'Số 15' },
-        { type: 'vocab', hanzi: '二百', pinyin: 'èrbǎi', viet: 'Số 200' },
-        { type: 'vocab', hanzi: '一千', pinyin: 'yìqiān', viet: 'Một nghìn' },
-        { type: 'vocab', hanzi: '一百万', pinyin: 'yībǎi wàn', viet: 'Một triệu' },
-        { type: 'vocab', hanzi: '十亿', pinyin: 'shí yì', viet: 'Một tỉ' }
-    ];
-
-    let currentList = [];
-    let currentIndex = 0;
-
-    function setMode(mode) {
-        document.querySelectorAll('.btn-mode').forEach(btn => btn.classList.remove('active'));
-        if (event) event.target.classList.add('active');
-
-        currentList = mode === 'all' ? [...database] : database.filter(item => item.type === mode);
-        currentList.sort(() => Math.random() - 0.5); // Random hoàn toàn khi F5 hoặc đổi chế độ
-        currentIndex = 0;
-        renderCard();
-    }
-
-    function renderCard() {
-        if (currentList.length === 0) return;
-        const item = currentList[currentIndex];
-        const hanziDiv = document.getElementById('display-hanzi');
-        
-        document.getElementById('flashcard').classList.remove('flipped');
-        
-        // Tự động điều chỉnh kích thước chữ nếu câu quá dài
-        if (item.hanzi.length > 6) {
-            hanziDiv.style.fontSize = "2rem";
-        } else {
-            hanziDiv.style.fontSize = "3.8rem";
-        }
-
-        setTimeout(() => {
-            hanziDiv.innerText = item.hanzi;
-            document.getElementById('display-pinyin').innerText = item.pinyin;
-            document.getElementById('display-meaning').innerText = item.viet;
-            document.getElementById('counter').innerText = `${currentIndex + 1} / ${currentList.length}`;
-        }, 150);
-    }
-
-    function flipCard() {
-        document.getElementById('flashcard').classList.toggle('flipped');
-    }
-
-    function nextCard() {
-        currentIndex = (currentIndex + 1) % currentList.length;
-        renderCard();
-    }
-
-    function speakGoogle() {
-        const text = currentList[currentIndex].hanzi;
-        const audio = document.getElementById('google-tts');
-        // Sử dụng Google TTS API chuẩn
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-CN&client=tw-ob`;
-        audio.src = url;
-        audio.play().catch(e => console.log("Lỗi phát âm. Hãy thử lại."));
-    }
-
-    window.onload = () => setMode('all');
+function speak(){
+    const text = document.getElementById("front").innerText;
+    window.speechSynthesis.cancel(); // Ngắt âm cũ nếu đang phát
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "zh-CN";
+    window.speechSynthesis.speak(utter);
+}
 </script>
+</head>
+<body onload="showRandom()">
+    <h2>HSK1 Flashcards Chuẩn</h2>
+    <div>
+        <button class="mode-btn" onclick="setMode('vocab', this)">TỪ VỰNG</button>
+        <button class="mode-btn" onclick="setMode('sent', this)">CÂU THOẠI</button>
+        <button class="mode-btn active" onclick="setMode('all', this)">TẤT CẢ</button>
+    </div>
+    <div class="card" onclick="flip()">
+        <div id="front"></div>
+        <div id="back"></div>
+    </div>
+    <button class="btn-main" onclick="flip()">LẬT THẺ</button>
+    <button class="btn-main" onclick="showRandom()">THẺ TIẾP THEO</button>
+    <button class="btn-main" onclick="speak()">🔊 PHÁT ÂM</button>
 </body>
 </html>
