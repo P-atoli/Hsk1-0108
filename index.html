@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -153,11 +154,13 @@
 </style>
 
 <script src="data.js"></script>
+
 </head>
 
 <body>
 
 <!-- MENU TRÊN -->
+
 <div class="menu-container">
     <button class="menu-btn" onclick="setMode('vocab')">TỪ VỰNG</button>
     <button class="menu-btn" onclick="setMode('sentences')">CÂU THOẠI</button>
@@ -165,6 +168,7 @@
 </div>
 
 <!-- FLASHCARD -->
+
 <div class="flashcard-container">
     <div id="flashcard" class="flashcard" onclick="flipCard()">
         <div id="front" class="front"></div>
@@ -173,6 +177,7 @@
 </div>
 
 <!-- NÚT ĐIỀU KHIỂN -->
+
 <div class="control-container">
     <button class="nav-btn" onclick="prevCard()">&#8592;</button>
     <button class="speak-btn" onclick="speakCurrent()">🔊</button>
@@ -180,6 +185,7 @@
 </div>
 
 <!-- HÌNH ELIZABETH -->
+
 <img src="Elizabeth.png" class="elizabeth" id="elizabeth">
 
 <script>
@@ -214,10 +220,11 @@ function flipCard() {
 function renderCard() {
     const item = currentList[currentIndex];
 
-    document.getElementById("front").textContent = item.word;
+    // ✅ SỬA: Khớp với data.js (hanzi, pinyin, mean)
+    document.getElementById("front").textContent = item.hanzi;
     document.getElementById("back").innerHTML =
         `<div class="pinyin">${item.pinyin}</div>
-         <div class="meaning">${item.meaning}</div>`;
+         <div class="meaning">${item.mean}</div>`;
 
     document.getElementById("flashcard").classList.remove("flipped");
 }
@@ -236,7 +243,8 @@ function prevCard() {
 /* PHÁT ÂM */
 function speakCurrent() {
     const item = currentList[currentIndex];
-    const utter = new SpeechSynthesisUtterance(item.word);
+    // ✅ SỬA: Khớp với data.js (hanzi)
+    const utter = new SpeechSynthesisUtterance(item.hanzi);
     utter.lang = "zh-CN";
     speechSynthesis.speak(utter);
 }
