@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,264 +8,181 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background: #f8f8f8;
+        background: #f5f5f5;
         margin: 0;
-        text-align: center;
         padding: 20px;
+        text-align: center;
     }
+    h1 { font-size: 26px; margin-bottom: 20px; }
 
-    h1 { margin-bottom: 10px; }
-
-    .btn-menu {
+    .menu {
+        margin-bottom: 20px;
+    }
+    .menu button {
+        padding: 10px 15px;
         margin: 5px;
-        padding: 10px 18px;
+        font-size: 16px;
         border: none;
+        cursor: pointer;
         background: #007bff;
         color: white;
         border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
+    }
+    .menu button:hover {
+        background: #0056b3;
     }
 
-    #flashcard {
-        margin: 20px auto;
+    .card-container {
+        perspective: 1000px;
         width: 90%;
         max-width: 380px;
-        height: 240px;
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin: 20px auto;
+    }
+    .card {
+        width: 100%;
+        height: 220px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+        cursor: pointer;
+    }
+    .card.flip {
+        transform: rotateY(180deg);
+    }
+
+    .front, .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 32px;
-        padding: 20px;
-        cursor: pointer;
-        user-select: none;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 30px;
+        background: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .back {
+        transform: rotateY(180deg);
+        font-size: 20px;
+        line-height: 1.4;
     }
 
-    .btn {
-        margin: 10px 5px;
-        padding: 10px 16px;
+    .controls {
+        margin-top: 20px;
+    }
+    .controls button {
+        padding: 10px 15px;
+        margin: 5px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
         background: #28a745;
         color: white;
-        border: none;
         border-radius: 6px;
-        cursor: pointer;
+    }
+    .controls button:hover {
+        background: #1e7e34;
     }
 
-    .btn-speak {
-        background: #ff5722;
+    .audio-btn {
+        margin-top: 10px;
+        background: #ff5722 !important;
     }
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>HSK1 Flashcards</h1>
 
-<button class="btn-menu" onclick="setMode('vocab')">TỪ VỰNG</button>
-<button class="btn-menu" onclick="setMode('sentence')">CÂU THOẠI</button>
-<button class="btn-menu" onclick="setMode('all')">TẤT CẢ</button>
-
-<div id="flashcard" onclick="flipCard()">
-    <span id="front"></span>
-    <span id="back" style="display:none;font-size:22px;"></span>
+<div class="menu">
+    <button onclick="setMode('vocab')">TỪ VỰNG</button>
+    <button onclick="setMode('sentences')">CÂU THOẠI</button>
+    <button onclick="setMode('all')">TẤT CẢ</button>
 </div>
 
-<button class="btn" onclick="nextCard()">Tiếp theo</button>
-<button class="btn btn-speak" onclick="speak()">Phát âm</button>
+<div class="card-container" onclick="flipCard()">
+    <div class="card" id="flashcard">
+        <div class="front" id="card-front">加载中...</div>
+        <div class="back" id="card-back">加载中...</div>
+    </div>
+</div>
+
+<div class="controls">
+    <button onclick="previousCard()">Quay lại</button>
+    <button onclick="nextCard()">Tiếp theo</button>
+    <button class="audio-btn" onclick="speakCurrent()">🔊 Phát âm</button>
+</div>
+
+<script src="data.js"></script>
 
 <script>
-// -----------------------------
-// 1. DỮ LIỆU TỪ VỰNG + CÂU THOẠI
-// -----------------------------
-
-const vocab = [
-    ["你","nǐ","bạn"],
-    ["好","hǎo","tốt"],
-    ["您","nín","ngài"],
-    ["你们","nǐmen","các bạn"],
-    ["对不起","duìbuqǐ","xin lỗi"],
-    ["没关系","méi guānxi","không sao"],
-
-    ["谢谢","xièxie","cảm ơn"],
-    ["不客气","bú kèqi","không có gì"],
-    ["再见","zàijiàn","tạm biệt"],
-
-    ["叫","jiào","tên là"],
-    ["什么","shénme","gì"],
-    ["名字","míngzi","tên"],
-    ["我","wǒ","tôi"],
-    ["是","shì","là"],
-    ["老师","lǎoshī","giáo viên"],
-    ["学生","xuésheng","học sinh"],
-    ["中国","Zhōngguó","Trung Quốc"],
-    ["美国","Měiguó","Mỹ"],
-
-    ["她","tā","cô ấy"],
-    ["谁","shéi","ai"],
-    ["汉语","Hànyǔ","tiếng Trung"],
-
-    ["家","jiā","nhà"],
-    ["有","yǒu","có"],
-    ["女儿","nǚ'ér","con gái"],
-
-    ["会","huì","biết"],
-    ["说","shuō","nói"],
-    ["写","xiě","viết"],
-    ["汉字","Hànzì","chữ Hán"],
-
-    ["今天","jīntiān","hôm nay"],
-    ["几号","jǐ hào","ngày mấy"],
-    ["月","yuè","tháng"],
-    ["星期","xīngqī","thứ"],
-
-    ["想","xiǎng","muốn"],
-    ["喝","hē","uống"],
-    ["吃","chī","ăn"],
-    ["米饭","mǐfàn","cơm"],
-
-    ["小","xiǎo","nhỏ"],
-    ["猫","māo","mèo"],
-    ["在","zài","ở"],
-    ["哪儿","nǎr","đâu"],
-
-    ["桌子","zhuōzi","bàn"],
-    ["电脑","diànnǎo","máy tính"],
-
-    ["现在","xiànzài","bây giờ"],
-    ["点","diǎn","giờ"],
-    ["分","fēn","phút"],
-
-    ["天气","tiānqì","thời tiết"],
-    ["热","rè","nóng"],
-    ["冷","lěng","lạnh"],
-
-    ["学习","xuéxí","học"],
-    ["睡觉","shuìjiào","ngủ"],
-
-    ["东西","dōngxi","đồ đạc"],
-    ["漂亮","piàoliang","đẹp"],
-
-    ["认识","rènshi","quen biết"],
-    ["飞机","fēijī","máy bay"]
-];
-
-const sentences = [
-    ["你好！","Nǐ hǎo!","Xin chào!"],
-    ["您好！","Nín hǎo!","Chào ngài!"],
-    ["你们好！","Nǐmen hǎo!","Chào các bạn!"],
-    ["对不起！","Duìbuqǐ!","Xin lỗi!"],
-    ["没关系！","Méi guānxi!","Không sao!"],
-
-    ["谢谢你！","Xièxie nǐ!","Cảm ơn bạn!"],
-    ["不客气！","Bú kèqi!","Không có gì!"],
-    ["再见！","Zàijiàn!","Tạm biệt!"],
-
-    ["你叫什么名字？","Nǐ jiào shénme míngzi?","Bạn tên là gì?"],
-    ["我叫李月。","Wǒ jiào Lǐ Yuè.","Tôi tên là Lý Nguyệt."],
-    ["你是老师吗？","Nǐ shì lǎoshī ma?","Bạn là giáo viên phải không?"],
-    ["我不是老师，我是学生。","Wǒ bú shì lǎoshī, wǒ shì xuésheng.","Tôi không phải giáo viên, tôi là học sinh."],
-
-    ["她是我的汉语老师。","Tā shì wǒ de Hànyǔ lǎoshī.","Cô ấy là giáo viên tiếng Trung của tôi."],
-    ["他是谁？","Tā shì shéi?","Anh ấy là ai?"],
-
-    ["你家有几口人？","Nǐ jiā yǒu jǐ kǒu rén?","Nhà bạn có mấy người?"],
-    ["你女儿几岁了？","Nǚ'ér jǐ suì le?","Con gái bạn mấy tuổi?"],
-
-    ["你会说汉语吗？","Nǐ huì shuō Hànyǔ ma?","Bạn biết nói tiếng Trung không?"],
-    ["中国菜很好吃。","Zhōngguó cài hěn hǎochī.","Món Trung Quốc rất ngon."],
-
-    ["请问，今天几号？","Qǐngwèn, jīntiān jǐ hào?","Hôm nay là ngày mấy?"],
-    ["今天星期几？","Jīntiān xīngqī jǐ?","Hôm nay thứ mấy?"],
-
-    ["你想喝什么？","Nǐ xiǎng hē shénme?","Bạn muốn uống gì?"],
-    ["我想喝茶。","Wǒ xiǎng hē chá.","Tôi muốn uống trà."],
-
-    ["小猫在哪儿？","Xiǎomāo zài nǎr?","Con mèo nhỏ ở đâu?"],
-    ["小狗在椅子下面。","Xiǎogǒu zài yǐzi xiàmian.","Con chó nhỏ ở dưới ghế."],
-
-    ["我能坐这儿吗？","Wǒ néng zuò zhèr ma?","Tôi có thể ngồi đây không?"],
-
-    ["现在几点？","Xiànzài jǐ diǎn?","Bây giờ là mấy giờ?"],
-
-    ["明天天气怎么样？","Míngtiān tiānqì zěnmeyàng?","Thời tiết ngày mai thế nào?"],
-
-    ["喂，你在做什么呢？","Wéi, nǐ zài zuò shénme ne?","A lô, bạn đang làm gì?"],
-    ["我在看书呢。","Wǒ zài kàn shū ne.","Tôi đang đọc sách."],
-
-    ["她买了不少衣服。","Tā mǎi le bù shǎo yīfu.","Cô ấy mua không ít quần áo."],
-
-    ["我是坐飞机来的。","Wǒ shì zuò fēijī lái de.","Tôi đi máy bay đến đây."],
-    ["很高兴认识你。","Hěn gāoxìng rènshi nǐ.","Rất vui được gặp bạn."]
-];
-
-// -----------------------------
-// 2. CHẾ ĐỘ HIỂN THỊ
-// -----------------------------
-
 let mode = "vocab";
-let currentData = vocab;
-let index = 0;
-let showingFront = true;
+let currentIndex = 0;
+let currentList = [];
 
 function setMode(m) {
     mode = m;
-    if (m === "vocab") currentData = vocab;
-    else if (m === "sentence") currentData = sentences;
-    else currentData = vocab.concat(sentences);
-    nextCard();
+    buildList();
+    currentIndex = 0;
+    displayCard();
+}
+
+// gộp dữ liệu theo mode
+function buildList() {
+    if (mode === "vocab") currentList = vocabList;
+    else if (mode === "sentences") currentList = sentenceList;
+    else currentList = vocabList.concat(sentenceList);
+
+    shuffle(currentList);
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function displayCard() {
+    const item = currentList[currentIndex];
+    document.getElementById("card-front").innerHTML = item.hanzi;
+    document.getElementById("card-back").innerHTML = item.pinyin + "<br>" + item.mean;
+}
+
+// lật thẻ
+function flipCard() {
+    document.getElementById("flashcard").classList.toggle("flip");
 }
 
 function nextCard() {
-    index = Math.floor(Math.random() * currentData.length);
-    showingFront = true;
-    document.getElementById("front").style.display = "block";
-    document.getElementById("back").style.display = "none";
-
-    document.getElementById("front").innerText = currentData[index][0];
-    document.getElementById("back").innerText = currentData[index][1] + "\n" + currentData[index][2];
+    currentIndex++;
+    if (currentIndex >= currentList.length) currentIndex = 0;
+    document.getElementById("flashcard").classList.remove("flip");
+    displayCard();
 }
 
-function flipCard() {
-    showingFront = !showingFront;
-    document.getElementById("front").style.display = showingFront ? "block" : "none";
-    document.getElementById("back").style.display = showingFront ? "none" : "block";
+function previousCard() {
+    currentIndex--;
+    if (currentIndex < 0) currentIndex = currentList.length - 1;
+    document.getElementById("flashcard").classList.remove("flip");
+    displayCard();
 }
 
-// -----------------------------
-// 3. SỬA LỖI PHÁT ÂM (iOS + Android + Chrome)
-// -----------------------------
-function speak() {
-    const text = document.getElementById("front").innerText;
-
-    if (!text) return;
-
-    const utter = new SpeechSynthesisUtterance(text);
+function speakCurrent() {
+    const utter = new SpeechSynthesisUtterance();
+    utter.text = currentList[currentIndex].hanzi;
     utter.lang = "zh-CN";
     utter.rate = 0.9;
-
-    // BẮT BUỘC CHO iOS
-    if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-    }
-
-    let voices = speechSynthesis.getVoices();
-
-    if (!voices.length) {
-        speechSynthesis.onvoiceschanged = () => {
-            voices = speechSynthesis.getVoices();
-            utter.voice = voices.find(v => v.lang === "zh-CN") || voices[0];
-            speechSynthesis.speak(utter);
-        };
-    } else {
-        utter.voice = voices.find(v => v.lang === "zh-CN") || voices[0];
-        speechSynthesis.speak(utter);
-    }
+    speechSynthesis.speak(utter);
 }
 
-nextCard();
+// khởi tạo
+buildList();
+displayCard();
 </script>
 
 </body>
