@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -15,7 +14,6 @@
         text-align: center;
     }
 
-    /* MENU TRÊN */
     .menu-container {
         margin-bottom: 20px;
         display: flex;
@@ -33,7 +31,6 @@
         cursor: pointer;
     }
 
-    /* FLASHCARD */
     .flashcard-container {
         perspective: 1000px;
         margin: 0 auto 30px auto;
@@ -50,7 +47,6 @@
         align-items: center;
         justify-content: center;
         font-size: 32px;
-        color: black;
         cursor: pointer;
         position: relative;
         transform-style: preserve-3d;
@@ -72,13 +68,10 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        text-align: center;
     }
 
-    .front {
-        color: black;
-        font-size: 36px;
-    }
+    .front { font-size: 36px; }
+    .back { transform: rotateY(180deg); }
 
     .back .pinyin {
         color: red;
@@ -87,40 +80,19 @@
     }
 
     .back .meaning {
-        color: black;
         font-size: 20px;
     }
 
-    .back {
-        transform: rotateY(180deg);
-    }
-
-    /* NÚT DƯỚI */
     .control-container {
         display: flex;
         justify-content: center;
         gap: 25px;
         margin-top: 40px;
-        margin-bottom: 30px;
     }
 
-    .nav-btn {
+    .nav-btn, .speak-btn {
         width: 55px;
         height: 55px;
-        background-color: #d6c8b4;
-        border-radius: 50%;
-        border: none;
-        font-size: 28px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .speak-btn {
-        width: 55px;
-        height: 55px;
-        background-color: #ffb347;
         border-radius: 50%;
         border: none;
         font-size: 28px;
@@ -130,44 +102,33 @@
         align-items: center;
     }
 
-    /* Elizabeth */
+    .nav-btn { background-color: #d6c8b4; }
+    .speak-btn { background-color: #ffb347; }
+
     .elizabeth {
         width: 35%;
         max-width: 120px;
-        margin: 20px auto 0 auto;
+        margin: 20px auto 0;
         display: block;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
     }
 
-    /* Animation rung cute */
-    @keyframes shakeCute {
-        0% { transform: translateX(0); }
-        20% { transform: translateX(-4px); }
-        40% { transform: translateX(4px); }
-        60% { transform: translateX(-3px); }
-        80% { transform: translateX(3px); }
-        100% { transform: translateX(0); }
-    }
-
-    .elizabeth.shake {
-        animation: shakeCute 0.4s ease-in-out;
+    .elizabeth.flipped {
+        transform: rotateY(180deg);
     }
 </style>
 
 <script src="data.js"></script>
-
 </head>
 
 <body>
-
-<!-- MENU TRÊN -->
 
 <div class="menu-container">
     <button class="menu-btn" onclick="setMode('vocab')">TỪ VỰNG</button>
     <button class="menu-btn" onclick="setMode('sentences')">CÂU THOẠI</button>
     <button class="menu-btn" onclick="setMode('all')">TẤT CẢ</button>
 </div>
-
-<!-- FLASHCARD -->
 
 <div class="flashcard-container">
     <div id="flashcard" class="flashcard" onclick="flipCard()">
@@ -176,24 +137,35 @@
     </div>
 </div>
 
-<!-- NÚT ĐIỀU KHIỂN -->
-
 <div class="control-container">
     <button class="nav-btn" onclick="prevCard()">&#8592;</button>
     <button class="speak-btn" onclick="speakCurrent()">🔊</button>
     <button class="nav-btn" onclick="nextCard()">&#8594;</button>
 </div>
 
-<!-- HÌNH ELIZABETH -->
-
 <img src="Elizabeth.png" class="elizabeth" id="elizabeth">
 
 <script>
 let mode = "vocab";
-let currentIndex = 0;
 let currentList = [];
+let history = [];
+let historyIndex = -1;
 
-/* ĐỔI CHẾ ĐỘ */
+/* RANDOM – KHÔNG TRÙNG THẺ GẦN NHẤT */
+function getRandomItem(list) {
+    if (list.length <= 1) return list[0];
+
+    let item;
+    const lastItem = history[historyIndex];
+
+    do {
+        item = list[Math.floor(Math.random() * list.length)];
+    } while (item === lastItem);
+
+    return item;
+}
+
+/* SET MODE */
 function setMode(m) {
     mode = m;
 
@@ -201,55 +173,55 @@ function setMode(m) {
     else if (mode === "sentences") currentList = sentenceList;
     else currentList = vocabList.concat(sentenceList);
 
-    currentIndex = 0;
-    renderCard();
+    history = [];
+    historyIndex = -1;
+    nextCard(); // random thẻ đầu tiên
 }
 
-/* HIỆU ỨNG LẬT THẺ + RUNG HÌNH */
-function flipCard() {
-    const card = document.getElementById("flashcard");
-    const eliza = document.getElementById("elizabeth");
-
-    card.classList.toggle("flipped");
-
-    eliza.classList.add("shake");
-    setTimeout(() => eliza.classList.remove("shake"), 450);
-}
-
-/* HIỂN THỊ THẺ */
-function renderCard() {
-    const item = currentList[currentIndex];
-
-    // ✅ SỬA: Khớp với data.js (hanzi, pinyin, mean)
+/* RENDER */
+function renderCard(item) {
     document.getElementById("front").textContent = item.hanzi;
-    document.getElementById("back").innerHTML =
-        `<div class="pinyin">${item.pinyin}</div>
-         <div class="meaning">${item.mean}</div>`;
-
+    document.getElementById("back").innerHTML = `
+        <div class="pinyin">${item.pinyin}</div>
+        <div class="meaning">${item.mean}</div>
+    `;
     document.getElementById("flashcard").classList.remove("flipped");
+    document.getElementById("elizabeth").classList.remove("flipped");
 }
 
-/* ĐIỀU HƯỚNG */
+/* NEXT → RANDOM MỚI */
 function nextCard() {
-    currentIndex = (currentIndex + 1) % currentList.length;
-    renderCard();
+    const item = getRandomItem(currentList);
+    history = history.slice(0, historyIndex + 1);
+    history.push(item);
+    historyIndex++;
+    renderCard(item);
 }
 
+/* PREV → QUAY LẠI */
 function prevCard() {
-    currentIndex = (currentIndex - 1 + currentList.length) % currentList.length;
-    renderCard();
+    if (historyIndex > 0) {
+        historyIndex--;
+        renderCard(history[historyIndex]);
+    }
 }
 
-/* PHÁT ÂM */
+/* FLIP */
+function flipCard() {
+    document.getElementById("flashcard").classList.toggle("flipped");
+    document.getElementById("elizabeth").classList.toggle("flipped");
+}
+
+/* SPEAK */
 function speakCurrent() {
-    const item = currentList[currentIndex];
-    // ✅ SỬA: Khớp với data.js (hanzi)
+    const item = history[historyIndex];
+    if (!item) return;
     const utter = new SpeechSynthesisUtterance(item.hanzi);
     utter.lang = "zh-CN";
     speechSynthesis.speak(utter);
 }
 
-/* KHỞI TẠO */
+/* INIT */
 setMode("vocab");
 </script>
 
